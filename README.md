@@ -26,25 +26,22 @@ In short: it doesn’t just retrieve and answer — it self-corrects when it fai
 ```mermaid
 flowchart TD
 
-A[User Query] --> B[Route Question - LLM Router]
+A[User Query] --> B[Query Router - LLM decides source]
 
-B -->|Vectorstore| C[Retrieve from FAISS]
+B -->|Web Search| C[Tavily Web Search]
+C --> D[Generate Answer]
 
-B -->|Web Search| D[Tavily Web Search]
+B -->|Vector Store| E[Retrieve from FAISS]
+E --> F[Grade Documents]
 
-C --> E[Grade Documents]
+F -->|Relevant docs| D[Generate Answer]
+F -->|Irrelevant / weak docs| G[Transform Query]
 
-E -->|Good / filtered docs| F[Generate Answer]
-E -->|Some irrelevant docs| G[Transform Query]
+G --> E
 
-G --> C
-
-D --> F
-
-F --> H[Grade Generation]
+D --> H[Grade Generation]
 
 H -->|Useful| I[END]
-
 H -->|Not Useful| G
-H -->|Hallucination detected| F
+H -->|Hallucinated| D
 ```
