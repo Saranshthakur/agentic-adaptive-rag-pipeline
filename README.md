@@ -21,61 +21,30 @@ This system goes beyond standard RAG. It behaves like an adaptive reasoning pipe
 In short: it doesn’t just retrieve and answer — it self-corrects when it fails.
 
 ---
-
-## Architecture
-User Query
-    ↓
-Query Router (LLM-based)
-    ↓
-┌───────────────┬────────────────┐
-│               │                │
-Vector Store    Web Search      (Tavily)
-(FAISS)             │
-│                   │
-Retrieve            Documents
-│
-Grade Documents (Relevance Filter)
-│
-Generate Answer (RAG Chain)
-│
-Hallucination Grader
-│
-Answer Quality Grader
-│
-┌───────────────┬────────────────┐
-│               │                │
-Useful       Not Useful      Hallucinated
-│               │                │
-END     Query Rewriting → Retrieval Loop
-
-
-
-## Architecture
 ## Architecture
 
 ```mermaid
 flowchart TD
 
-A[User Query] --> B[Query Router - LLM classification]
+A[User Query] --> B[Route Question - LLM Router]
 
-B -->|Vectorstore route| C[FAISS Retrieval]
-B -->|Web route| D[Tavily Web Search]
+B -->|Vectorstore| C[Retrieve from FAISS]
 
-C --> E[Document Relevance Grading]
+B -->|Web Search| D[Tavily Web Search]
 
-E -->|Relevant docs| F[RAG Generation]
-E -->|No relevant docs| K[Query Rewriting]
+C --> E[Grade Documents]
+
+E -->|Good / filtered docs| F[Generate Answer]
+E -->|Some irrelevant docs| G[Transform Query]
+
+G --> C
 
 D --> F
 
-F --> G[Hallucination Grader]
-
-G --> H[Answer Quality Grader]
+F --> H[Grade Generation]
 
 H -->|Useful| I[END]
 
-H -->|Not Useful| K
-H -->|Hallucinated| K
-
-K --> C
+H -->|Not Useful| G
+H -->|Hallucination detected| F
 ```
