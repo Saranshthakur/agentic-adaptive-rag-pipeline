@@ -20,28 +20,64 @@ This system goes beyond standard RAG. It behaves like an adaptive reasoning pipe
 
 In short: it doesn’t just retrieve and answer — it self-corrects when it fails.
 
+
 ---
-## Architecture
 
-```mermaid
-flowchart TD
+## Key Features
 
-A[User Query] --> B[Query Router - LLM decides source]
+### Adaptive Query Routing
+Automatically decides whether a query should be answered using:
+- Internal knowledge base (FAISS)
+- External web search (Tavily)
 
-B -->|Web Search| C[Tavily Web Search]
-C --> D[Generate Answer]
+### Multi-Source Retrieval
+Combines structured vector search with real-time web search for broader coverage.
 
-B -->|Vector Store| E[Retrieve from FAISS]
-E --> F[Grade Documents]
+### Document Relevance Filtering
+Each retrieved document is graded by an LLM to remove irrelevant context before generation.
 
-F -->|Relevant docs| D[Generate Answer]
-F -->|Irrelevant / weak docs| G[Transform Query]
+### Self-Correction Loop
+If retrieved context is weak or incomplete:
+- Query is rewritten
+- Retrieval is repeated
+- System iterates until quality improves
 
-G --> E
+### Hallucination Detection
+Generated answers are validated against retrieved documents to ensure factual grounding.
 
-D --> H[Grade Generation]
+### Answer Quality Evaluation
+Checks whether the final response actually addresses the user’s question.
 
-H -->|Useful| I[END]
-H -->|Not Useful| G
-H -->|Hallucinated| D
-```
+---
+
+## Tech Stack
+
+- Python
+- LangGraph (agentic workflows)
+- LangChain
+- OpenAI GPT-4o-mini
+- FAISS (vector database)
+- Tavily Search API
+- Pydantic (structured outputs)
+
+---
+
+## How it works
+
+1. User submits a question  
+2. LLM router decides best data source  
+3. Relevant documents are retrieved  
+4. Documents are filtered for relevance  
+5. Answer is generated using RAG pipeline  
+6. Answer is checked for hallucination  
+7. Answer is evaluated for relevance  
+8. If quality is poor → query is rewritten and retried  
+
+---
+
+## Example Queries
+
+```python
+"What is agent memory and how does it work?"
+"What are the latest updates in Python?"
+"What is retrieval augmented generation?"
