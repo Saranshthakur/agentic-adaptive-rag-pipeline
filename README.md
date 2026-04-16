@@ -51,7 +51,6 @@ END     Query Rewriting → Retrieval Loop
 
 
 ## Architecture
-
 ## Architecture
 
 ```mermaid
@@ -59,24 +58,24 @@ flowchart TD
 
 A[User Query] --> B[Query Router - LLM classification]
 
-B -->|Vectorstore route| C[FAISS Vector Store Retrieval]
+B -->|Vectorstore route| C[FAISS Retrieval]
 B -->|Web route| D[Tavily Web Search]
 
-C --> E[Retrieved Documents]
-D --> E[Web Documents]
+C --> E[Document Relevance Grading]
 
-E --> F[Document Relevance Grading - LLM filter]
+E -->|Relevant docs| F[RAG Generation]
+E -->|No relevant docs| K[Query Rewriting]
 
-F --> G[RAG Answer Generation]
+D --> F
 
-G --> H[Hallucination Grader]
+F --> G[Hallucination Grader]
 
-H --> I[Answer Quality Grader]
+G --> H[Answer Quality Grader]
 
-I -->|Useful| J[END]
+H -->|Useful| I[END]
 
-I -->|Not Useful| K[Query Rewriting]
-I -->|Hallucinated| K
+H -->|Not Useful| K
+H -->|Hallucinated| K
 
 K --> C
 ```
